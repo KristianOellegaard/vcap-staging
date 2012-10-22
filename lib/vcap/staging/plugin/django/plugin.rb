@@ -1,34 +1,39 @@
 class DjangoPlugin < StagingPlugin
   include PipSupport
 
-  REQUIREMENTS = ['django', 'gunicorn']
+  REQUIREMENTS = ['gunicorn']
 
   def stage_application
     Dir.chdir(destination_directory) do
       create_app_directories
       copy_source_files
+      make_virtual_env
       create_startup_script
       create_stop_script
       create_gunicorn_config
     end
   end
 
+  def make_virtual_env
+    if uses_pip?
+      system "pip install virtualenv"
+      system "virtualenv --distribute #{File.join(source_directory, app_dir, '.venv')}"
+      system "#{File.join(source_directory, app_dir, '.venv', 'bin', 'pip')} install -r #{File.join(source_directory, app_dir)} requirements.txt"
+      system "virtualenv --relocatable #{File.join(source_directory, app_dir, '.venv')}"
+    end
+  end
+
   def start_command
     cmds = []
-    if uses_pip?
-      cmds << install_requirements
-    end
-    cmds << "python manage.py syncdb --noinput >> ../logs/startup.log 2>&1"
-    cmds << "../python/bin/gunicorn_django -c ../gunicorn.config"
+    cmds << ".venv/bin/python manage.py syncdb --noinput >> ../logs/startup.log 2>&1"
+    cmds << ".venv/bin/gunicorn_django -c ../gunicorn.config"
     cmds.join("\n")
   end
 
   private
 
   def startup_script
-    generate_startup_script do
-      setup_python_env(REQUIREMENTS)
-    end
+    generate_startup_script
   end
 
   def stop_script
