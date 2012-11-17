@@ -12,18 +12,16 @@ module PipSupport
   end
 
   def install_requirements
-    "pip install --user -r #{REQUIREMENTS_FILE} >> ../logs/startup.log 2>&1"
+    system "#{File.join(source_directory, app_dir, '.venv', 'bin', 'pip')} install -r #{File.join(source_directory, app_dir)} requirements.txt >> ../logs/startup.log 2>&1"
   end
 
-  def setup_python_env(packages)
-    cmds = [
-            'DIR="$( cd "$( dirname "$0" )" && pwd )"',
-            "export PYTHONUSERBASE=$DIR/python"
-           ]
-    packages.each { |package|
-      cmds << "pip install --user #{package} >> logs/startup.log 2>&1"
-    }
-    cmds.join("\n")
+  def setup_python_env
+    if uses_pip?
+      system "pip install virtualenv"
+      system "virtualenv --distribute #{File.join(source_directory, app_dir, '.venv')}"
+      install_requirements
+      system "virtualenv --relocatable #{File.join(source_directory, app_dir, '.venv')}"
+    end
   end
 
 end

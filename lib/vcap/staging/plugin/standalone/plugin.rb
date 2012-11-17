@@ -19,6 +19,8 @@ class StandalonePlugin < StagingPlugin
     if runtime[:name] =~ /\Aruby/
       compile_gems
       install_autoconfig_gem if autoconfig_enabled?
+    elsif runtime[:name] =~ /\Apython/
+      setup_python_env
     end
   end
 
