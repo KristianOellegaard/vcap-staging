@@ -1,6 +1,7 @@
 class StandalonePlugin < StagingPlugin
   include GemfileSupport
   include RubyAutoconfig
+  include PipSupport
 
   def stage_application
     Dir.chdir(destination_directory) do
