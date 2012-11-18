@@ -77,6 +77,7 @@ class StandalonePlugin < StagingPlugin
     vars = {}
     #setup python scripts to sync stdout/stderr to files
     vars['PYTHONUNBUFFERED'] = "true"
+    vars['PATH'] = "$PATH:$PWD/app/.venv/bin/"
     generate_startup_script(vars)
   end
 
