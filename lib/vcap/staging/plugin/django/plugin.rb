@@ -25,7 +25,7 @@ class DjangoPlugin < StagingPlugin
     vars = {}
     #setup python scripts to sync stdout/stderr to files
     vars['PYTHONUNBUFFERED'] = "true"
-    vars['PATH'] = "$PATH:$PWD/app/.venv/bin/"
+    vars['PATH'] = "$PWD/app/.venv/bin/:$PATH"
     generate_startup_script(vars)
   end
 
