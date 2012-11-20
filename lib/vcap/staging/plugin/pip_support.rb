@@ -6,21 +6,24 @@ module PipSupport
     File.exists?(File.join(source_directory, REQUIREMENTS_FILE))
   end
 
-  # PEP 370 - user install area
-  def user_base
-    File.join(destination_directory, 'python')
+  def use_template_venv?
+    File.exists?("/var/base-venv/")
   end
 
-  def install_requirements
-    system "#{File.join(source_directory, app_dir, '.venv', 'bin', 'pip')} install -r #{File.join(source_directory, app_dir)} requirements.txt >> ../logs/startup.log 2>&1"
+  def venv_dir
+    File.join(app_dir, '.venv')
   end
 
   def setup_python_env
     if uses_pip?
-      system "pip install virtualenv"
-      system "virtualenv --distribute #{File.join(source_directory, app_dir, '.venv')}"
-      install_requirements
-      system "virtualenv --relocatable #{File.join(source_directory, app_dir, '.venv')}"
+      if use_template_venv?
+        system "cp -r /var/base-venv/ #{venv_dir}"
+      else
+        system "pip install virtualenv"
+        system "virtualenv --distribute #{venv_dir}"
+      end
+      system "#{File.join(venv_dir, 'bin', 'python')} #{File.join(venv_dir, 'bin', 'pip')} install --use-mirrors --download-cache=/var/pip-cache/ -r #{File.join(app_dir, 'requirements.txt')} > #{File.join(log_dir, 'staging.log')}"
+      system "virtualenv --relocatable #{venv_dir}"
     end
   end
 

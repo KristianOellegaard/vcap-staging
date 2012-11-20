@@ -14,15 +14,19 @@ class DjangoPlugin < StagingPlugin
 
   def start_command
     cmds = []
-    cmds << ".venv/bin/python manage.py syncdb --noinput >> ../logs/startup.log 2>&1"
-    cmds << ".venv/bin/gunicorn_django -c ../gunicorn.config"
+    cmds << "python manage.py syncdb --noinput >> ../logs/syncdb.log 2>&1"
+    cmds << "gunicorn_django -c ../gunicorn.config"
     cmds.join("\n")
   end
 
   private
 
   def startup_script
-    generate_startup_script
+    vars = {}
+    #setup python scripts to sync stdout/stderr to files
+    vars['PYTHONUNBUFFERED'] = "true"
+    vars['PATH'] = "$PATH:$PWD/app/.venv/bin/"
+    generate_startup_script(vars)
   end
 
   def stop_script
